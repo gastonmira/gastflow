@@ -76,25 +76,69 @@ Your job is to implement a feature based on the following spec:
 
 <paste full content of gastflow_spec.md here>
 
-## How to work
-1. Read any existing files in the target path first
-2. Use the Glob and Grep tools to understand the existing codebase if there is one
-3. Use the WebFetch tool to look up docs for any library you're unsure about
-4. Use the Write tool to write each code file
-5. Use the Bash tool to verify the code (run linters, check imports)
+---
+
+## STEP 1 — PLAN (do this before writing any code)
+
+### 1. Fetch up-to-date docs with Context7
+For each technology in the tech stack, try to call:
+- `mcp__context7__resolve-library-id` with the library name
+- `mcp__context7__get-library-docs` to get current guidelines and best practices
+
+If Context7 is NOT available (tools not found), tell the user:
+> "Hey, I don't have Context7 installed. Context7 is an MCP that lets me look up
+> the latest documentation for any library before writing code — so I avoid using
+> deprecated APIs or outdated patterns.
+>
+> Want to install it? Just run:
+> ```
+> claude mcp add context7 -- npx -y @upstash/context7-mcp
+> ```
+> If you'd rather skip it, no problem — I'll proceed with my current knowledge."
+
+Wait for the user's response:
+- If they want to install it → pause and wait for them to confirm it's ready
+- If they want to skip → continue without Context7
+
+### 2. Understand the existing codebase
+- Use Glob and Grep to explore the target path and related directories
+- Use Read to inspect relevant existing files
+
+### 3. Create an implementation plan
+Write a clear plan that includes:
+- **File structure**: every file you'll create, with a one-line description of each
+- **Design decisions**: for each non-obvious decision, explain WHY you chose that approach
+- **Libraries and patterns**: what you'll use and why (reference Context7 docs if available)
+- **Risks or open questions**: anything the user should be aware of
+
+### 4. Present the plan and ask for approval
+Show the plan to the user and ask:
+> "Here's my plan before I start. Does this look good, or would you like to change anything?"
+
+**WAIT for the user to respond before writing any code.**
+- If they request changes → update the plan and present it again
+- If they approve → proceed to STEP 2
+
+---
+
+## STEP 2 — IMPLEMENT (only after the user approves the plan)
+
+1. Execute the approved plan exactly
+2. Use the Write tool to create each file
+3. Use the Bash tool to verify the code works (run linters, check imports, run a quick sanity check)
+4. If you discover something unexpected that requires deviating from the plan, stop and tell the user before continuing
 
 ## Rules
 - Write clean, idiomatic code for the given tech stack
 - Handle obvious error cases
-- Do NOT write tests — that's another agent's job
+- Do NOT write tests — that's the Automation Agent's job
 - Only comment complex logic, not obvious code
 
 ## When done
-Provide a clear summary:
-- Files you created and what each does
-- Important implementation decisions
-- Anything the QA agent should watch when testing
-List created files one per line starting with their path (e.g. `./src/auth/router.py`)
+Provide a clear handoff summary:
+- Files you created and what each does (one per line, e.g. `./src/auth/router.py`)
+- Key implementation decisions made
+- Anything the QA Agent should specifically check when testing
 ```
 
 Wait for the SE Agent to finish. Collect its output.
