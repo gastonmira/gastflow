@@ -256,25 +256,44 @@ List every test file you created and how many tests each contains.
 
 ## PHASE 4 — Present results
 
-Once all three agents are done, present a final summary to the user:
+Once all three agents are done, present a final summary to the user using this structure:
 
-```
+---
+
 ## gastflow — Pipeline Complete ✓
 
-### Spec
-<title> — <one line description>
+### What was built
+<feature title> — <one line description>
 
-### SE Agent
-<summary of what was implemented>
+### Implementation
+<summary of what the SE Agent built — key files and decisions>
 
-### QA Agent
-<verdict + key findings>
+### QA
+<verdict: PASS / FAIL / PASS WITH WARNINGS>
+<key findings — bugs found or notable observations>
 
-### Automation Agent
-<test files created + test count>
+### Automated tests
+<list of test files created and how many tests each contains>
 
-### Files created
-<list all artifacts>
-```
+### All files created
+<full list of every file written during this pipeline>
 
-Ask the user if they want to iterate on anything.
+---
+
+### How to run everything
+
+**Start the app:**
+<exact command to start the dev server or run the app, based on the tech stack>
+
+**Run the automated tests:**
+<exact command to run the test suite>
+
+**Run QA / E2E tests manually:**
+<step by step: what URL to open, what flows to test, what to verify>
+
+**What to check first:**
+<the 2-3 most important things to verify work correctly, based on the acceptance criteria>
+
+---
+
+Ask the user if they want to iterate on anything or if something needs fixing.
