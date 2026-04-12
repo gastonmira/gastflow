@@ -5,19 +5,17 @@
 set -e
 
 SKILLS_DIR="$HOME/.claude/skills"
-SKILL_FILE="$SKILLS_DIR/gastflow"
+SKILL_DIR="$SKILLS_DIR/gastflow"
 
 echo "Installing gastflow..."
 
-# Create skills directory if it doesn't exist
-mkdir -p "$SKILLS_DIR"
-
-# Copy skill file (no .md extension — Claude Code requires this)
-cp "$(dirname "$0")/skills/gastflow.md" "$SKILL_FILE"
+# Claude Code skills must be a directory containing SKILL.md
+mkdir -p "$SKILL_DIR"
+cp "$(dirname "$0")/skills/gastflow.md" "$SKILL_DIR/SKILL.md"
 
 echo ""
 echo "✓ gastflow installed!"
 echo ""
 echo "Usage: open any project in Claude Code and run /gastflow"
 echo ""
-echo "To uninstall: rm $SKILL_FILE"
+echo "To uninstall: rm -rf $SKILL_DIR"
