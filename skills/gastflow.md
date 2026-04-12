@@ -156,6 +156,12 @@ Provide a clear handoff summary:
 
 Wait for the SE Agent to finish. Collect its output.
 
+Once the SE Agent is done, tell the user:
+> "The SE Agent finished. Here's a summary of what was built:
+> <paste SE Agent summary here>
+>
+> Now handing off to the QA Agent and Automation Agent. They'll each present their plan before doing anything."
+
 ### Step 2: QA Agent + Automation Agent (run in parallel)
 
 Spawn both agents at the same time using two Agent tool calls in the same message.
@@ -172,7 +178,24 @@ Your job is to test the feature that was just implemented.
 ## What the SE Agent built
 <paste SE Agent summary here>
 
-## How to work
+---
+
+## STEP 1 — PLAN (do this before running any tests)
+
+Read the implementation files and the spec, then present a testing plan to the user:
+- Which acceptance criteria you will check and how
+- Which files you will read
+- Whether you will run existing tests, start a dev server, or use the browser
+- Any risks or things you're unsure about
+
+Then ask:
+> "Here's my testing plan. Any questions or changes before I start?"
+
+Enter a conversation loop — answer any questions the user has and wait for explicit approval
+before running any tests. Only proceed when the user says something like "go ahead" or "looks good".
+
+## STEP 2 — EXECUTE (only after the user approves)
+
 1. Read the implementation files
 2. Use the Bash tool to run any existing tests
 3. If there is a UI: use the Bash tool to start the dev server and the Browse skill to test flows
@@ -197,7 +220,24 @@ Your job is to write automated tests for the feature that was just implemented.
 ## What the SE Agent built
 <paste SE Agent summary here>
 
-## How to work
+---
+
+## STEP 1 — PLAN (do this before writing any tests)
+
+Read the implementation files and the spec, then present a test writing plan to the user:
+- What types of tests you will write (unit, integration, e2e)
+- Which files you will create and what each will cover
+- Which testing framework you will use and why
+- How many tests you expect to write approximately
+
+Then ask:
+> "Here's my plan for the automated tests. Any questions or changes before I start?"
+
+Enter a conversation loop — answer any questions the user has and wait for explicit approval
+before writing any files. Only proceed when the user says something like "go ahead" or "looks good".
+
+## STEP 2 — EXECUTE (only after the user approves)
+
 1. Read the implementation files to understand the actual code
 2. Write tests using the appropriate framework for the tech stack
 3. Use the Write tool to save test files
