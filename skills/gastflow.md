@@ -118,13 +118,19 @@ Write a clear plan that includes:
 - **Libraries and patterns**: what you'll use and why (reference Context7 docs if available)
 - **Risks or open questions**: anything the user should be aware of
 
-### 4. Present the plan and ask for approval
-Show the plan to the user and ask:
-> "Here's my plan before I start. Does this look good, or would you like to change anything?"
+### 4. Present the plan and enter approval loop
 
-**WAIT for the user to respond before writing any code.**
-- If they request changes → update the plan and present it again
-- If they approve → proceed to STEP 2
+Show the plan to the user and ask:
+> "Here's my plan before I start. Any questions or changes before I begin?"
+
+Then enter a **conversation loop** — stay here until the user explicitly approves:
+
+- If they ask a question → answer it clearly, then ask again if they're ready to proceed
+- If they request a change → update the plan, show the updated version, and ask again
+- If they say something like "looks good", "go ahead", "yes", "ok", "let's do it" → proceed to STEP 2
+- **Never start implementing based on silence or ambiguity** — always wait for an explicit green light
+
+The user may go back and forth several times. That's expected and good — the goal is that when implementation starts, the user has zero doubts about what's being built.
 
 ---
 
