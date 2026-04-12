@@ -1,21 +1,31 @@
 #!/bin/bash
 # gastflow installer
-# Installs the gastflow skill into Claude Code
+# Installs all gastflow skills into Claude Code
 
 set -e
 
 SKILLS_DIR="$HOME/.claude/skills"
-SKILL_DIR="$SKILLS_DIR/gastflow"
+REPO_DIR="$(dirname "$0")"
 
-echo "Installing gastflow..."
+install_skill() {
+  local name=$1
+  local source_file="$REPO_DIR/skills/${name}.md"
+  local target_dir="$SKILLS_DIR/$name"
 
-# Claude Code skills must be a directory containing SKILL.md
-mkdir -p "$SKILL_DIR"
-cp "$(dirname "$0")/skills/gastflow.md" "$SKILL_DIR/SKILL.md"
+  mkdir -p "$target_dir"
+  cp "$source_file" "$target_dir/SKILL.md"
+  echo "  ✓ /$name"
+}
+
+echo "Installing gastflow skills..."
+echo ""
+
+install_skill "gastflow"
+install_skill "gastflow-se"
+install_skill "gastflow-qa"
+install_skill "gastflow-automation"
 
 echo ""
-echo "✓ gastflow installed!"
+echo "All skills installed! Start a session with /gastflow in any project."
 echo ""
-echo "Usage: open any project in Claude Code and run /gastflow"
-echo ""
-echo "To uninstall: rm -rf $SKILL_DIR"
+echo "To uninstall: rm -rf $SKILLS_DIR/gastflow $SKILLS_DIR/gastflow-se $SKILLS_DIR/gastflow-qa $SKILLS_DIR/gastflow-automation"
