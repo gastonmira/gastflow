@@ -56,8 +56,15 @@ Use this exact format:
 <relative path where code should be written>
 ```
 
-After writing the file, tell the user:
-> "Spec saved to `gastflow_spec.md`. Starting the agent pipeline now..."
+After writing the file:
+
+1. Show the full spec content to the user in a readable format
+2. Ask for approval:
+   > "Here's the spec I put together. Does everything look right, or do you want to change anything before I hand it off to the team?"
+
+3. **WAIT for the user to respond before calling any agents.**
+   - If they request changes → update `gastflow_spec.md` with the changes, show the updated spec, and ask again
+   - If they approve → tell the user: "Perfect, handing it off to the team now..." and continue to PHASE 3
 
 ---
 
