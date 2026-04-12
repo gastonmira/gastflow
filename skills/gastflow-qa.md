@@ -12,10 +12,19 @@ First, read your context from disk:
 
 ## STEP 1 — PLAN (do this before running any tests)
 
-Read the implementation files and the spec, then present a testing plan to the user:
+Read the implementation files and the spec. If there is a UI component:
+- Check if Playwright is available: `npx playwright --version 2>/dev/null`
+- If available → include visual/interaction testing in your plan
+- If NOT available → tell the user:
+  > "I'd like to use Playwright for visual and interaction testing. It's not installed yet.
+  > Want me to install it? (`npm install -D @playwright/test && npx playwright install`)
+  > If you'd rather skip visual testing, I'll cover what I can through code review and unit tests."
+  Wait for the user's response before continuing.
+
+Then present a testing plan that includes:
 - Which acceptance criteria you will check and how
 - Which files you will read
-- Whether you will run existing tests, start a dev server, or use the browser
+- Whether you will run existing tests, start a dev server, or run Playwright
 - Any risks or things you're unsure about
 
 Then ask:
