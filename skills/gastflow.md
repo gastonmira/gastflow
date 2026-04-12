@@ -64,7 +64,26 @@ After writing the file:
 
 3. **WAIT for the user to respond before calling any agents.**
    - If they request changes → update `gastflow_spec.md` with the changes, show the updated spec, and ask again
-   - If they approve → tell the user: "Perfect, handing it off to the team now..." and continue to PHASE 3
+   - If they approve → continue to step 4
+
+4. **Ask about branching strategy:**
+   > "One more thing before we start — do you want to work on a new branch or stay on the current one?
+   > If you want a new branch, I'd suggest something like `feature/<spec-title-in-kebab-case>`. Want to go with that or use a different name?"
+
+   - If they want a new branch → run `git checkout -b <branch-name>` and confirm:
+     > "Done, switched to branch `<branch-name>`."
+   - If they want to stay on the current branch → note it and continue
+
+5. **Ask about merge strategy:**
+   > "And when we're done — how do you want to merge? Options are:
+   > - **PR**: I open a pull request so you can review before merging
+   > - **Direct merge**: I merge straight into the base branch when everything looks good"
+
+   - Store the user's choice — you'll use it in PHASE 4 after all agents finish
+   - If they choose PR: ask which is the base branch (default: `main`)
+
+   Once both are answered, tell the user:
+   > "Perfect, handing it off to the team now..." and continue to PHASE 3
 
 ---
 
@@ -297,3 +316,22 @@ Once all three agents are done, present a final summary to the user using this s
 ---
 
 Ask the user if they want to iterate on anything or if something needs fixing.
+
+Once the user is happy, execute the merge strategy they chose in PHASE 2:
+
+**If they chose PR:**
+- Stage and commit all changes: `git add -A && git commit -m "<descriptive commit message based on the spec title>"`
+- Push the branch: `git push -u origin <branch-name>`
+- Open a PR using `gh pr create` with:
+  - Title based on the spec title
+  - Body summarizing what was built, what was tested, and how to review it
+- Share the PR URL with the user
+
+**If they chose direct merge:**
+- Stage and commit all changes on the feature branch
+- Switch to the base branch and merge: `git checkout <base-branch> && git merge <branch-name>`
+- Confirm to the user: "Merged into `<base-branch>`. All done!"
+
+**If they chose to stay on the current branch:**
+- Stage and commit all changes: `git add -A && git commit -m "<descriptive commit message>"`
+- Confirm: "Committed directly to `<current-branch>`. All done!"
