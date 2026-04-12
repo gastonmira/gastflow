@@ -5,14 +5,14 @@
 set -e
 
 SKILLS_DIR="$HOME/.claude/skills"
-SKILL_FILE="$SKILLS_DIR/gastflow.md"
+SKILL_FILE="$SKILLS_DIR/gastflow"
 
 echo "Installing gastflow..."
 
 # Create skills directory if it doesn't exist
 mkdir -p "$SKILLS_DIR"
 
-# Copy skill file
+# Copy skill file (no .md extension — Claude Code requires this)
 cp "$(dirname "$0")/skills/gastflow.md" "$SKILL_FILE"
 
 echo ""
