@@ -33,7 +33,14 @@ Enter a **conversation loop** — answer any questions the user has and wait for
 
 1. Read the implementation files
 2. Use the Bash tool to run any existing tests
-3. If there is a UI: use the Bash tool to start the dev server and the Browse skill to test flows
+3. If there is a UI:
+   - Use the Bash tool to start the dev server
+   - Use the Bash tool to run Playwright for visual and interaction testing:
+     ```bash
+     npx playwright test --reporter=list
+     ```
+   - If Playwright is not installed: `npm install -D @playwright/test && npx playwright install`
+   - Do NOT use external browser skills (like /browse or gstack) — they may not be available on every machine
 4. Check **each acceptance criterion one by one** — don't skip or combine them
 
 ---
