@@ -14,6 +14,11 @@ Check if `.gastflow/memory.md` exists. If yes, read it and greet the user with w
 
 ## PHASE 1 — Clarification
 
+**If the user doesn't have a feature in mind** (says "no sé", "dame ideas", "qué podría agregar", "necesito un backlog", or similar): offer to run the Product Agent first:
+> "Puedo correr el Product Agent primero para escanear el proyecto y darte un backlog de ideas. ¿Lo lanzo?"
+
+If they accept, call `Skill("gastflow-product")`. The Product Agent will present the ideas and discuss with the user. When it finishes, read `gastflow_backlog.md` to pick up the chosen idea and continue PHASE 1 with it.
+
 Gather: what the feature does, tech stack, target path, requirements, acceptance criteria. Skip anything already in memory. When clear, say: "Alright, let me write up the spec."
 
 ---
@@ -36,25 +41,13 @@ Then say: "Perfect, handing it off to the team now..."
 
 ## PHASE 3 — Agent pipeline
 
-**Step 1 — SE Agent** (sequential):
-```
-You are the SE Agent in the gastflow framework.
-Read gastflow_spec.md and gastflow_state.md from the current directory to understand your task.
-Then follow your role instructions exactly.
-```
-Wait for it to finish. Tell the user what was built (from gastflow_state.md), then say QA and Automation are next.
+Use the **Skill tool** (not the Agent tool) to invoke each sub-agent. Skills are invoked by name.
 
-**Step 2 — QA + Automation** (parallel, two Agent calls in one message):
-```
-You are the QA Agent in the gastflow framework.
-Read gastflow_spec.md and gastflow_state.md from the current directory to understand your task.
-Then follow your role instructions exactly.
-```
-```
-You are the Automation Agent in the gastflow framework.
-Read gastflow_spec.md and gastflow_state.md from the current directory to understand your task.
-Then follow your role instructions exactly.
-```
+**Step 1 — SE Agent (Software Engineer)** (sequential):
+Call `Skill("gastflow-se")`. Wait for it to finish. Tell the user what was built (from gastflow_state.md), then say QA and Automation are next.
+
+**Step 2 — QA (Quality Assurance) + Automation** (sequential):
+Call `Skill("gastflow-qa")`, wait for it to finish, then call `Skill("gastflow-automation")`.
 
 ---
 
@@ -71,6 +64,7 @@ Ask if the user wants to iterate. When happy, execute the merge strategy:
 ```bash
 mkdir -p .gastflow/history/<spec-title-kebab>_<YYYY-MM-DD>
 cp gastflow_spec.md gastflow_state.md .gastflow/history/<spec-title-kebab>_<YYYY-MM-DD>/
+[ -f gastflow_backlog.md ] && cp gastflow_backlog.md .gastflow/history/<spec-title-kebab>_<YYYY-MM-DD>/ && rm gastflow_backlog.md
 rm gastflow_spec.md gastflow_state.md
 grep -q ".gastflow" .gitignore 2>/dev/null || echo ".gastflow/" >> .gitignore
 ```

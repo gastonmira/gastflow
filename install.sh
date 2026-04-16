@@ -1,31 +1,39 @@
 #!/bin/bash
 # gastflow installer
 # Installs all gastflow skills into Claude Code
+# Works both locally (from cloned repo) and remotely (via curl)
 
 set -e
 
 SKILLS_DIR="$HOME/.claude/skills"
-REPO_DIR="$(dirname "$0")"
+REPO_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+REPO="gastonmira/gastflow"
+BRANCH="main"
+BASE_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/skills"
+
+SKILLS=("gastflow" "gastflow-product" "gastflow-se" "gastflow-qa" "gastflow-automation")
 
 install_skill() {
   local name=$1
-  local source_file="$REPO_DIR/skills/${name}.md"
   local target_dir="$SKILLS_DIR/$name"
-
   mkdir -p "$target_dir"
-  cp "$source_file" "$target_dir/SKILL.md"
+
+  if [ -f "$REPO_DIR/skills/${name}.md" ]; then
+    cp "$REPO_DIR/skills/${name}.md" "$target_dir/SKILL.md"
+  else
+    curl -fsSL "$BASE_URL/${name}.md" -o "$target_dir/SKILL.md"
+  fi
   echo "  ✓ /$name"
 }
 
 echo "Installing gastflow skills..."
 echo ""
 
-install_skill "gastflow"
-install_skill "gastflow-se"
-install_skill "gastflow-qa"
-install_skill "gastflow-automation"
+for skill in "${SKILLS[@]}"; do
+  install_skill "$skill"
+done
 
 echo ""
 echo "All skills installed! Start a session with /gastflow in any project."
 echo ""
-echo "To uninstall: rm -rf $SKILLS_DIR/gastflow $SKILLS_DIR/gastflow-se $SKILLS_DIR/gastflow-qa $SKILLS_DIR/gastflow-automation"
+echo "To uninstall: rm -rf ${SKILLS[*]/#/$SKILLS_DIR/}"
