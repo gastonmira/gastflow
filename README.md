@@ -67,7 +67,6 @@ No API keys to manage. No Python environment to set up.
 ## Requirements
 
 - [Claude Code](https://claude.ai/code) installed
-- An Anthropic API key configured in Claude Code
 
 ## Uninstall
 
