@@ -11,7 +11,7 @@ REPO="gastonmira/gastflow"
 BRANCH="main"
 BASE_URL="https://raw.githubusercontent.com/$REPO/$BRANCH/skills"
 
-SKILLS=("gastflow" "gastflow-product" "gastflow-se" "gastflow-qa" "gastflow-automation")
+SKILLS=("gastflow" "gastflow-product" "gastflow-se" "gastflow-bugfix" "gastflow-qa" "gastflow-automation")
 
 install_skill() {
   local name=$1

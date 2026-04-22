@@ -12,12 +12,19 @@ First, read your context from disk:
 
 ## STEP 1 — PLAN (do this before writing any tests)
 
-Read the implementation files and the spec, then present a test writing plan to the user:
+Read the implementation files and the spec, then present a test writing plan to the user.
+
+**Check the spec's `type:` field:**
+- If `type: feature` → standard coverage. Each acceptance criterion should map to at least one test.
+- If `type: bugfix` → prioritize a **regression test** that encodes the spec's reproduction steps as a scenario and asserts the expected behavior. The test should fail against the buggy code and pass against the fix. Add related coverage if obviously adjacent, but the regression test is the deliverable.
+
+Present:
 - What types of tests you will write (unit, integration, e2e) and why
 - Which files you will create and what each will cover
 - Which testing framework you will use and why
 - Approximate number of tests
-- Each acceptance criterion should map to at least one test
+- For features: each acceptance criterion maps to at least one test
+- For bugfixes: the regression test is called out explicitly, referencing the repro steps
 
 Then ask:
 > "Here's my plan for the automated tests. Any questions or changes before I start?"
