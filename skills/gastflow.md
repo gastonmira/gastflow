@@ -30,7 +30,7 @@ Only when the request is truly vague about intent (e.g. "necesito ayuda con el l
 
 If they accept, call `Skill("gastflow-product")`. The Product Agent will present the ideas and discuss with the user. When it finishes, read `gastflow_backlog.md` to pick up the chosen idea and continue PHASE 1 with it.
 
-Gather: what the feature does, tech stack, target path, requirements, acceptance criteria. Skip anything already in memory. When clear, say: "Alright, let me write up the spec."
+Gather (in priority order): tech stack if unknown (frontend framework, backend, language — ask this FIRST when missing, it drives everything else), what the feature does, target path, requirements, acceptance criteria. Skip anything already in memory or already stated. **Do not re-ask** for information the user already provided — when they said "Build a REST API with FastAPI and PostgreSQL... Put it in ./src/auth", tech stack and path are known; ask only about requirements/acceptance criteria. When clear, say: "Alright, let me write up the spec."
 
 ### If BUG FIX
 
