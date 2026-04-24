@@ -39,9 +39,9 @@ CASES = [
         rubric="""The response should:
 - Recognize that the tech stack (FastAPI, PostgreSQL) is already specified
 - Recognize the target path (./src/auth) is already specified
-- Focus clarifying questions on acceptance criteria or specific requirements
-- NOT re-ask about tech stack or target path (already provided)
-- Keep it concise — a brief feature/bug confirmation followed by 1-2 substantive questions is acceptable""",
+- Ask only about missing info: acceptance criteria OR specific requirements
+- NOT re-ask about tech stack or target path
+- Ask at most 2 questions — 1 targeted question is ideal""",
         threshold=0.6,
     ),
     EvalCase(

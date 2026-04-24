@@ -54,9 +54,11 @@ MAX_GRADER_RETRIES = 2  # total attempts = 1 + MAX_GRADER_RETRIES
 
 def _try_grade_once(client: anthropic.Anthropic, output: str, rubric: str) -> tuple[float, str] | None:
     """Single grader attempt. Returns (score, verdict) on success, None on parse failure."""
+    # 2048 tokens leaves room for long <thinking> reasoning on large agent outputs
+    # (Automation Agent test plans can be 2-3k chars, which squeezed the old 1024 budget).
     response = client.messages.create(
         model=GRADER_MODEL,
-        max_tokens=1024,
+        max_tokens=2048,
         messages=[{"role": "user", "content": build_grader_prompt(output, rubric)}],
     )
 

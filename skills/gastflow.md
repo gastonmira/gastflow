@@ -14,35 +14,18 @@ Check if `.gastflow/memory.md` exists. If yes, read it and greet the user with w
 
 ## PHASE 1 — Clarification
 
-**First, determine the work type.** Default to **inferring** from the user's request — only ask if it's genuinely ambiguous.
-
-Clear feature signals (do NOT ask, infer `feature`): "build", "create", "add", "implement", "quiero agregar", describing new functionality, listing requirements or acceptance criteria, specifying a tech stack for something new.
-
-Clear bug signals (do NOT ask, infer `bugfix`): "bug", "broken", "doesn't work", "failing", "error", "fix", "regression", "hay un bug", describing a symptom plus expected vs actual behavior.
-
-Only when the request is truly vague about intent (e.g. "necesito ayuda con el login" without any action verb or symptom), ask:
-> "¿Esto es una feature nueva o un bug fix?"
-
-### If FEATURE
-
 **If the user doesn't have a feature in mind** (says "no sé", "dame ideas", "qué podría agregar", "necesito un backlog", or similar): offer to run the Product Agent first:
 > "Puedo correr el Product Agent primero para escanear el proyecto y darte un backlog de ideas. ¿Lo lanzo?"
 
 If they accept, call `Skill("gastflow-product")`. The Product Agent will present the ideas and discuss with the user. When it finishes, read `gastflow_backlog.md` to pick up the chosen idea and continue PHASE 1 with it.
 
-Gather (in priority order): tech stack if unknown (frontend framework, backend, language — ask this FIRST when missing, it drives everything else), what the feature does, target path, requirements, acceptance criteria. Skip anything already in memory or already stated. **Do not re-ask** for information the user already provided — when they said "Build a REST API with FastAPI and PostgreSQL... Put it in ./src/auth", tech stack and path are known; ask only about requirements/acceptance criteria. When clear, say: "Alright, let me write up the spec."
+**Silently classify the request as feature or bugfix** — do not ask the user, do not mention the classification, just infer:
+- Feature signals: "build", "create", "add", "implement", new functionality, requirements, acceptance criteria
+- Bugfix signals: "bug", "broken", "doesn't work", "failing", "error", "fix", "regression", symptom + expected vs actual
 
-### If BUG FIX
+Then gather the right info for that type. For **features**: what it does, tech stack, target path, requirements, acceptance criteria. For **bugfixes**: reproduction steps, expected vs actual behavior, when it started, relevant logs or stack traces, suspected files (optional). Never ask for acceptance criteria on a bugfix — the criterion is "the bug no longer reproduces".
 
-Gather (1-2 questions at a time, never a list):
-- What's the bug — what does the user do that triggers it?
-- Reproduction steps, if they have them
-- Expected behavior vs what actually happens
-- When it started (recent change/deploy, if known)
-- Any logs, errors, or stack traces
-- Files or areas they suspect (optional — ask, but don't require it)
-
-Do NOT ask for acceptance criteria — the criterion is "the bug no longer reproduces". Skip anything already in memory. When clear, say: "Alright, let me write up the bug spec."
+Skip anything already in memory or already stated by the user. When clear, say: "Alright, let me write up the spec."
 
 ---
 
