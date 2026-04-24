@@ -14,10 +14,14 @@ Check if `.gastflow/memory.md` exists. If yes, read it and greet the user with w
 
 ## PHASE 1 — Clarification
 
-**First, determine the work type.** Ask:
-> "¿Esto es una feature nueva o un bug fix?"
+**First, determine the work type.** Default to **inferring** from the user's request — only ask if it's genuinely ambiguous.
 
-Infer from context if the user already said it clearly (e.g. "hay un bug que..." → bugfix; "quiero agregar..." → feature). Otherwise ask.
+Clear feature signals (do NOT ask, infer `feature`): "build", "create", "add", "implement", "quiero agregar", describing new functionality, listing requirements or acceptance criteria, specifying a tech stack for something new.
+
+Clear bug signals (do NOT ask, infer `bugfix`): "bug", "broken", "doesn't work", "failing", "error", "fix", "regression", "hay un bug", describing a symptom plus expected vs actual behavior.
+
+Only when the request is truly vague about intent (e.g. "necesito ayuda con el login" without any action verb or symptom), ask:
+> "¿Esto es una feature nueva o un bug fix?"
 
 ### If FEATURE
 
