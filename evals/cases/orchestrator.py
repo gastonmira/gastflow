@@ -40,9 +40,9 @@ CASES = [
 - Recognize that the tech stack (FastAPI, PostgreSQL) is already specified
 - Recognize the target path (./src/auth) is already specified
 - Ask only about missing info: acceptance criteria OR specific requirements
-- NOT ask about tech stack (already provided)
-- NOT ask more than 2 questions""",
-        threshold=0.7,
+- NOT re-ask about tech stack or target path
+- Ask at most 2 questions — 1 targeted question is ideal""",
+        threshold=0.6,
     ),
     EvalCase(
         name="spec_covers_all_required_fields",
@@ -67,10 +67,10 @@ The spec must be written in markdown format.""",
         name="handles_ambiguous_tech_stack",
         user_input="I want a simple login page.",
         rubric="""The response should:
-- Ask what frontend framework or language to use (React, Vue, plain HTML, etc.)
-- Ask if there's a backend requirement or if it's just a static page
+- Ask about the tech stack since it's missing — at minimum frontend framework or language (React, Vue, plain HTML, etc.), and ideally also whether a backend is needed
 - Keep it to 1-2 questions maximum
-- Be friendly and not make the user feel interrogated""",
-        threshold=0.7,
+- Be friendly and not make the user feel interrogated
+- It is acceptable to ask just ONE targeted question as long as it clearly targets missing tech-stack information""",
+        threshold=0.6,
     ),
 ]

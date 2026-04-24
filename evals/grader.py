@@ -10,6 +10,8 @@ Grading pattern:
   - Return normalized score 0.0 to 1.0
 """
 
+from __future__ import annotations
+
 import re
 import anthropic
 
@@ -47,9 +49,46 @@ Scoring guide:
 """
 
 
+MAX_GRADER_RETRIES = 2  # total attempts = 1 + MAX_GRADER_RETRIES
+
+
+def _try_grade_once(client: anthropic.Anthropic, output: str, rubric: str) -> tuple[float, str] | None:
+    """Single grader attempt. Returns (score, verdict) on success, None on parse failure."""
+    # 2048 tokens leaves room for long <thinking> reasoning on large agent outputs
+    # (Automation Agent test plans can be 2-3k chars, which squeezed the old 1024 budget).
+    response = client.messages.create(
+        model=GRADER_MODEL,
+        max_tokens=2048,
+        messages=[{"role": "user", "content": build_grader_prompt(output, rubric)}],
+    )
+
+    response_text = response.content[0].text
+
+    result_match = re.search(r"<result>(.*?)</result>", response_text, re.DOTALL)
+    if not result_match:
+        return None
+
+    result_block = result_match.group(1)
+    score_match = re.search(r"score:\s*(\d+)", result_block)
+    if not score_match:
+        return None
+
+    raw_score = int(score_match.group(1))
+    normalized = raw_score / 5.0
+
+    verdict_match = re.search(r"verdict:\s*(.+)", result_block)
+    verdict = verdict_match.group(1).strip() if verdict_match else "No verdict provided"
+
+    return normalized, verdict
+
+
 def grade(output: str, rubric: str) -> tuple[float, str]:
     """
     Grades an agent output against a rubric.
+
+    Retries on parse failures so a flaky Haiku response (truncated output,
+    malformed tags) doesn't turn into a spurious FAIL with score 0.0. Only
+    returns 0.0 after every retry has failed.
 
     Args:
         output: The agent's response to evaluate
@@ -60,29 +99,14 @@ def grade(output: str, rubric: str) -> tuple[float, str]:
     """
     client = anthropic.Anthropic()
 
-    response = client.messages.create(
-        model=GRADER_MODEL,
-        max_tokens=1024,
-        messages=[{"role": "user", "content": build_grader_prompt(output, rubric)}],
-    )
+    last_error = "Grader failed to produce a result block"
+    for attempt in range(1 + MAX_GRADER_RETRIES):
+        try:
+            result = _try_grade_once(client, output, rubric)
+            if result is not None:
+                return result
+            last_error = f"Grader produced unparseable output (attempt {attempt + 1})"
+        except anthropic.APIError as e:
+            last_error = f"Grader API error (attempt {attempt + 1}): {e}"
 
-    response_text = response.content[0].text
-
-    # Extract score from <result> block
-    result_match = re.search(r"<result>(.*?)</result>", response_text, re.DOTALL)
-    if not result_match:
-        return 0.0, "Grader failed to produce a result block"
-
-    result_block = result_match.group(1)
-
-    score_match = re.search(r"score:\s*(\d+)", result_block)
-    verdict_match = re.search(r"verdict:\s*(.+)", result_block)
-
-    if not score_match:
-        return 0.0, "Grader failed to produce a numeric score"
-
-    raw_score = int(score_match.group(1))
-    normalized = raw_score / 5.0  # Normalize to 0.0-1.0
-    verdict = verdict_match.group(1).strip() if verdict_match else "No verdict provided"
-
-    return normalized, verdict
+    return 0.0, last_error

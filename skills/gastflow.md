@@ -19,13 +19,23 @@ Check if `.gastflow/memory.md` exists. If yes, read it and greet the user with w
 
 If they accept, call `Skill("gastflow-product")`. The Product Agent will present the ideas and discuss with the user. When it finishes, read `gastflow_backlog.md` to pick up the chosen idea and continue PHASE 1 with it.
 
-Gather: what the feature does, tech stack, target path, requirements, acceptance criteria. Skip anything already in memory. When clear, say: "Alright, let me write up the spec."
+**Silently classify the request as feature or bugfix** — do not ask the user, do not mention the classification, just infer:
+- Feature signals: "build", "create", "add", "implement", new functionality, requirements, acceptance criteria
+- Bugfix signals: "bug", "broken", "doesn't work", "failing", "error", "fix", "regression", symptom + expected vs actual
+
+Then gather the right info for that type. For **features**: what it does, tech stack, target path, requirements, acceptance criteria. For **bugfixes**: reproduction steps, expected vs actual behavior, when it started, relevant logs or stack traces, suspected files (optional). Never ask for acceptance criteria on a bugfix — the criterion is "the bug no longer reproduces".
+
+Skip anything already in memory or already stated by the user. When clear, say: "Alright, let me write up the spec."
 
 ---
 
 ## PHASE 2 — Spec, branching, and pipeline setup
 
-1. **Write `gastflow_spec.md`** with: title, description, requirements, tech stack, acceptance criteria, out of scope, target path.
+1. **Write `gastflow_spec.md`**. Always include a `type:` field as the second line (after the title) so downstream agents can route correctly.
+
+   **For a feature**, include: title, `type: feature`, description, requirements, tech stack, acceptance criteria, out of scope, target path.
+
+   **For a bug fix**, include: title, `type: bugfix`, description, reproduction steps (obligatorio), expected behavior, actual behavior, tech stack, target path, suspected files / areas (opcional, si el usuario las aportó), out of scope.
 
 2. **Show the spec** to the user and ask for approval. Loop until they explicitly approve — update the file if they request changes.
 
@@ -33,7 +43,7 @@ Gather: what the feature does, tech stack, target path, requirements, acceptance
 
 4. **Ask about merge strategy:** PR (ask for base branch, default `main`) or direct merge.
 
-5. **Write `gastflow_state.md`** with: feature name, branch, merge strategy, base branch, status: running, and pending sections for SE Agent, QA Agent, and Automation Agent.
+5. **Write `gastflow_state.md`** with: feature/bug name, type, branch, merge strategy, base branch, status: running, and pending sections for the implementation agent (SE Agent if feature, Bug Fix Agent if bugfix), QA Agent, and Automation Agent.
 
 Then say: "Perfect, handing it off to the team now..."
 
@@ -43,11 +53,14 @@ Then say: "Perfect, handing it off to the team now..."
 
 Use the **Skill tool** (not the Agent tool) to invoke each sub-agent. Skills are invoked by name.
 
-**Step 1 — SE Agent (Software Engineer)** (sequential):
-Call `Skill("gastflow-se")`. Wait for it to finish. Tell the user what was built (from gastflow_state.md), then say QA and Automation are next.
+**Step 1 — Implementation agent** (sequential). Read the `type:` field from `gastflow_spec.md` and route:
+- If `type: feature` → call `Skill("gastflow-se")`
+- If `type: bugfix` → call `Skill("gastflow-bugfix")`
+
+Wait for it to finish. Tell the user what was built/fixed (from gastflow_state.md), then say QA and Automation are next.
 
 **Step 2 — QA (Quality Assurance) + Automation** (sequential):
-Call `Skill("gastflow-qa")`, wait for it to finish, then call `Skill("gastflow-automation")`.
+Call `Skill("gastflow-qa")`, wait for it to finish, then call `Skill("gastflow-automation")`. If this was a bugfix, remind the user that the Automation Agent will write a regression test covering the reproduction steps.
 
 ---
 

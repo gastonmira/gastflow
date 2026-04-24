@@ -32,8 +32,8 @@ from evals.cases.se_agent import CASES as SE_CASES
 from evals.cases.qa_agent import CASES as QA_CASES
 from evals.cases.automation_agent import CASES as AUTOMATION_CASES
 
-# Model used to simulate agents (same as production)
-AGENT_MODEL = "claude-sonnet-4-6"
+# Model used to simulate agents in evals (cheaper than production to keep CI fast)
+AGENT_MODEL = "claude-haiku-4-5-20251001"
 
 console = Console()
 
