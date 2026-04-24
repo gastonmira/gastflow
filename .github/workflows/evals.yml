@@ -1,4 +1,10 @@
-name: Prompt Evals
+name: Prompt Evals (informational)
+
+# Runs the prompt eval suite on any PR that touches skill or eval files.
+# Results are INFORMATIONAL — the job does not block merging. Rubric scores
+# are noisy under Haiku-as-grader on subjective criteria, so the suite is
+# meant to flag regressions for human review rather than serve as a binary
+# gate. Revisit this once evals are multi-sampled and recalibrated.
 
 on:
   pull_request:
@@ -6,12 +12,13 @@ on:
       - "skills/gastflow.md"
       - "skills/gastflow-se.md"
       - "skills/gastflow-qa.md"
+      - "skills/gastflow-bugfix.md"
       - "skills/gastflow-automation.md"
       - "evals/**"
 
 jobs:
   evals:
-    name: Run agent prompt evals
+    name: Run agent prompt evals (informational)
     runs-on: ubuntu-latest
 
     steps:
@@ -28,12 +35,14 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run evals
+        # Non-blocking: see header comment. Review the step log manually.
+        continue-on-error: true
         run: python evals/run_evals.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Upload results on failure
-        if: failure()
+      - name: Upload results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: eval-results
