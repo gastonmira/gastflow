@@ -26,12 +26,27 @@ install_skill() {
   echo "  ✓ /$name"
 }
 
+install_template() {
+  # Shared HTML design system used by every skill to render artifacts.
+  # Lives next to the orchestrator skill so all sub-agents can Read it.
+  local target="$SKILLS_DIR/gastflow/template.html"
+
+  if [ -f "$REPO_DIR/skills/gastflow-html-template.html" ]; then
+    cp "$REPO_DIR/skills/gastflow-html-template.html" "$target"
+  else
+    curl -fsSL "$BASE_URL/gastflow-html-template.html" -o "$target"
+  fi
+  echo "  ✓ template.html (HTML design system)"
+}
+
 echo "Installing gastflow skills..."
 echo ""
 
 for skill in "${SKILLS[@]}"; do
   install_skill "$skill"
 done
+
+install_template
 
 echo ""
 echo "All skills installed! Start a session with /gastflow in any project."
