@@ -14,21 +14,29 @@ using the Agent tool.
 ```
 gastflow/
 ├── skills/
-│   └── gastflow.md    # The /gastflow skill — this is the entire product
-├── install.sh         # Copies gastflow.md to ~/.claude/skills/
+│   ├── gastflow.md                    # Orchestrator (the /gastflow entry point)
+│   ├── gastflow-product.md            # Product Agent (backlog generation)
+│   ├── gastflow-se.md                 # SE Agent (feature implementation)
+│   ├── gastflow-bugfix.md             # Bug Fix Agent (root-cause + minimal fix)
+│   ├── gastflow-qa.md                 # QA Agent (acceptance testing)
+│   ├── gastflow-automation.md         # Automation Agent (writes tests)
+│   └── gastflow-html-template.html    # Shared HTML design system (not a skill)
+├── install.sh         # Installs skills + template into ~/.claude/skills/
 ├── CLAUDE.md          # This file
 └── README.md
 ```
 
 ## How to work on this project
 
-The entire product is `skills/gastflow.md`. That's the file to edit when improving gastflow.
+The product is split across the skill files in `skills/`. The orchestration logic lives in `skills/gastflow.md`; each sub-agent has its own file.
 
-When editing the skill:
-- The Orchestrator behavior is in PHASE 1 and PHASE 2
-- The agent prompts are in PHASE 3
+**All artifacts are HTML + JSON pairs** (spec, state, backlog, plan), backed by the shared design system in `skills/gastflow-html-template.html`. The only Markdown that survives is `.gastflow/memory.md` (agent-only context).
+
+When editing skills:
 - Keep prompts clear and specific — vague prompts produce vague agent behavior
-- Test by running `./install.sh` and then `/gastflow` in a test project
+- If you change the artifact data shape, update both the JSON schema docs in the orchestrator skill AND the agent that writes that section
+- The HTML template is the single source of visual truth — change CSS there, not in each skill
+- Test by running `./install.sh` and then `/gastflow` in a test project. Open the generated `.html` files in a browser to verify the render.
 
 ## Testing changes
 
