@@ -1,0 +1,5 @@
+interface:
+  display_name: "gastflow"
+  short_description: "Spec-driven development workflow"
+  brand_color: "#2563EB"
+  default_prompt: "Use $gastflow to clarify, spec, implement, QA, test, and report this change."

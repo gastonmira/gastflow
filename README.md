@@ -1,6 +1,6 @@
 # gastflow
 
-An agentic software development workflow for Claude Code. You describe what you want to build — gastflow clarifies, writes a spec, delegates to specialized sub-agents, and ships.
+An agentic software development workflow compatible with Claude Code and Codex. You describe what you want to build — gastflow clarifies, writes a spec, coordinates specialized agents/roles, and ships.
 
 The output is **not Markdown**. Every spec, plan, and final report is a self-contained HTML page you can open in a browser, share via link, and read on your phone. Inspired by [The Unreasonable Effectiveness of HTML](https://thariqs.github.io/html-effectiveness/) by Thariq (Claude Code team).
 
@@ -23,15 +23,29 @@ git clone https://github.com/gastonmira/gastflow
 cd gastflow && ./install.sh
 ```
 
+By default, the installer installs gastflow for both Claude Code and Codex. You can also install only one runtime:
+
+```bash
+./install.sh --claude
+./install.sh --codex
+./install.sh --all
+```
+
 ## Usage
 
-Open any project in Claude Code and run:
+In Claude Code, open any project and run:
 
 ```
 /gastflow
 ```
 
-Don't have a feature in mind? `/gastflow` will offer to run the **Product Agent** first — it scans your project and proposes a backlog of ideas grouped into Quick wins / Core bets / Wild cards.
+In Codex, ask Codex to use gastflow:
+
+```
+Use gastflow to plan and implement this feature...
+```
+
+Don't have a feature in mind? gastflow will offer to run the **Product Agent** first — it scans your project and proposes a backlog of ideas grouped into Quick wins / Core bets / Wild cards.
 
 ## How it works
 
@@ -128,7 +142,7 @@ The agent rewrites both the `.json` and the `.html` — you don't touch the JSON
 
 ## Requirements
 
-- [Claude Code](https://claude.ai/code) installed
+- [Claude Code](https://claude.ai/code) or Codex installed
 - Optional: [Context7](https://github.com/upstash/context7) MCP for up-to-date library docs (`claude mcp add context7 -- npx -y @upstash/context7-mcp`)
 - Optional: Playwright for UI testing in QA (`npm install -D @playwright/test`)
 
@@ -136,11 +150,12 @@ The agent rewrites both the `.json` and the `.html` — you don't touch the JSON
 
 ```bash
 rm -rf ~/.claude/skills/gastflow ~/.claude/skills/gastflow-product ~/.claude/skills/gastflow-se ~/.claude/skills/gastflow-bugfix ~/.claude/skills/gastflow-qa ~/.claude/skills/gastflow-automation
+rm -rf "${CODEX_HOME:-$HOME/.codex}/skills/gastflow"
 ```
 
 ## Contributing
 
-The product is the set of skill files in `skills/`. The orchestration logic lives in `skills/gastflow.md`; each sub-agent has its own file. The shared HTML design system is `skills/gastflow-html-template.html` — change CSS there, not in each skill. PRs welcome.
+The Claude Code distribution lives in `skills/`. The Codex distribution lives in `codex/gastflow/`. Keep both compatible with the same artifact model and update Codex-specific validation when changing the Codex skill. The shared HTML design system starts at `skills/gastflow-html-template.html`; Codex installs a copy as `codex/gastflow/assets/template.html`. PRs welcome.
 
 ## License
 

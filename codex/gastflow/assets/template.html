@@ -1,0 +1,473 @@
+<!doctype html>
+<!--
+  gastflow shared HTML template — design system for all gastflow artifacts.
+
+  How to use this file:
+  1. Copy the entire <head> (including <style>) into your generated artifact.
+  2. Set <body data-artifact="..."> to one of: spec | state | backlog | plan
+     (this swaps the accent color via CSS variables).
+  3. Replace the <main> contents with artifact-specific markup using the
+     component classes documented below.
+  4. End the file with the data sidecar pattern:
+       <script type="application/json" id="gastflow-data" src="./<name>.json"></script>
+     (the .json sibling is the source of truth for agents; the HTML is the
+     human-facing render of that data).
+
+  Components available (see <main> below for live examples):
+    .doc            — outer wrapper
+    .hero           — title block with artifact-type badge + meta
+    .badge          — pill: .badge-feature .badge-bugfix .badge-pass .badge-fail
+                            .badge-warn .badge-pending .badge-completed
+    .card           — generic content card
+    .grid           — responsive auto-fit grid (use for backlog idea cards,
+                      side-by-side comparisons)
+    .timeline       — horizontal pipeline tracker with connectors
+    .timeline-step  — single node; add .done / .active / .pending
+    .file-list      — table-like list of created/modified files
+    .code           — <pre><code> block with neutral background. Always
+                      apply syntax tokens to make it scannable — pure
+                      black-on-grey is hard to read. Token classes (work
+                      inside both .code and .diff):
+                        .k   keyword (def, return, async, if, …)
+                        .s   string literal
+                        .c / .cmt   comment
+                        .n   number / true / false / None
+                        .fn  function or method name (the identifier)
+                        .dec decorator line / annotation (@router.get)
+                        .b   builtin / type (int, str, dict, Response, …)
+                        .o   operator (=, ==, +, …) when worth emphasizing
+    .callout        — info banner; .callout-info .callout-warn .callout-success
+                      .callout-error
+    .kvs            — key/value list (for metadata: branch, target path, …)
+    .stat-icon      — icon-led stat card. Use for categorical counters
+                      (files created, tests written, QA verdict). Markup:
+                        <div class="stat-icon">
+                          <span class="ico">📁</span>
+                          <div class="lbl">files created</div>
+                          <div class="num">3</div>
+                          <div class="sub">healthz.py · router.py · …</div>
+                        </div>
+    .stat-bar       — value-vs-target bar. Use when there is a budget or
+                      total: latency vs p95 budget, criteria covered vs total.
+                        <div class="stat-bar">
+                          <div class="head">
+                            <span class="lbl">latency budget</span>
+                            <span class="num">22ms <span class="of">/ 600ms p95</span></span>
+                          </div>
+                          <div class="bar"><span style="width:4%"></span></div>
+                          <div class="sub">96% headroom</div>
+                        </div>
+                      Add class .warn or .err to the inner <span> when the
+                      value is over budget.
+    .diff           — unified-diff block for file modifications. Markup:
+                        <div class="diff">
+                          <div class="file">path/to/file.py
+                            <span class="stats"><span class="add">+12</span><span class="del">-3</span></span>
+                          </div>
+                          <pre>
+                            <div class="row hunk"><span class="ln"></span><span class="sg"></span>@@ -10,5 +10,7 @@</div>
+                            <div class="row"><span class="ln">10</span><span class="sg"> </span>context line</div>
+                            <div class="row del"><span class="ln">11</span><span class="sg">-</span>old line</div>
+                            <div class="row add"><span class="ln">11</span><span class="sg">+</span>new line</div>
+                          </pre>
+                        </div>
+                      Use whenever a plan or fix modifies an existing file —
+                      the reader needs to see exactly what changes.
+
+  Keep ALL styles inline (no external deps) so the file works over file://,
+  S3, email attachments, or copied to another machine without breakage.
+
+  ----------------------------------------------------------------------
+  DIAGRAM PATTERNS (inline SVG — no library)
+  ----------------------------------------------------------------------
+  Diagrams are OPT-IN. The agent must ASK the user before adding one
+  ("Want a diagram for this? It would help explain X."). Never include
+  unsolicited. When the user says yes, pick the pattern that fits the
+  question being answered:
+
+    1. linear-flow      — straight A → B → C → D pipeline. Use when there
+                          is one path, no branches, and the order matters.
+                          Example: probe → FastAPI → handler → Postgres.
+
+    2. sequence         — actors as columns, dashed lifelines, arrows for
+                          messages. Use when timing/order between actors
+                          matters and you want to show happy path AND
+                          failure modes (timeout, error). Slightly busier
+                          than linear-flow, much richer.
+
+    3. decision-tree    — vertical flow with diamond decision nodes and
+                          green/red branches. Use when the code has a real
+                          fork (timeout vs ok, cache hit vs miss).
+
+    4. arch-stack       — horizontal layered rectangles (k8s → app → db).
+                          Use to answer "where does this fit in the
+                          system?" — the architectural question, not
+                          the runtime question.
+
+    5. annotated-code   — code panel on the left with callout boxes on
+                          the right pointing at specific lines. Use in
+                          plans / PR explainers — the design *intent*
+                          lives next to the line that implements it.
+                          Best for code review and bug-fix walkthroughs.
+                          IMPLEMENTATION NOTES (annotated-code only):
+                          • Use NBSP entities (&#160;) for Python
+                            indentation — SVG collapses leading whitespace
+                            in <tspan>, breaking code structure.
+                          • Highlight the annotated line(s) with a
+                            <rect class="hi"> band + a 3px <rect class="bar">
+                            on the left edge so the reader sees exactly
+                            which line(s) the callout refers to.
+                          • Render callout BOXES with <foreignObject>
+                            wrapping a <div xmlns="http://www.w3.org/1999/xhtml">,
+                            NOT with <text>. SVG <text> does not wrap;
+                            long descriptions get clipped. The callout
+                            div should have background, border, padding,
+                            and use normal HTML/CSS so descriptions wrap
+                            naturally. Set the foreignObject height tall
+                            enough for the wrapped text (~64-88 px depending
+                            on description length).
+                          • CRITICAL: the callout's CSS (.ann-co etc) MUST
+                            live in the page-level <style> at the top of
+                            the artifact, NOT inside the SVG's <style>.
+                            Styles defined inside <svg><style>…</style></svg>
+                            do not cascade into HTML rendered by
+                            <foreignObject> — the box ends up with no
+                            background or border. Page-level <style>
+                            cascades correctly.
+                          • Connect each highlight to its callout with a
+                            <line> + arrowhead marker, ending at the
+                            callout's vertical center.
+
+  All patterns: use viewBox + width="100%" so they scale; fill colors
+  with the CSS variables (var(--accent-soft), var(--ok-soft), etc.) so
+  the diagram inherits the artifact's theme and respects dark mode.
+  See variants.html in the demo folder for full markup of each pattern.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>gastflow artifact</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e7e5e4;
+    --text: #1c1917;
+    --text-soft: #57534e;
+    --text-mute: #a8a29e;
+    --code-bg: #f5f5f4;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+    --radius: 12px;
+    --radius-sm: 6px;
+    --accent: #4f46e5;        /* default: indigo (spec) */
+    --accent-soft: #eef2ff;
+    --ok: #16a34a;
+    --ok-soft: #dcfce7;
+    --warn: #d97706;
+    --warn-soft: #fef3c7;
+    --err: #dc2626;
+    --err-soft: #fee2e2;
+  }
+  body[data-artifact="state"]   { --accent:#16a34a; --accent-soft:#dcfce7; }
+  body[data-artifact="backlog"] { --accent:#d97706; --accent-soft:#fef3c7; }
+  body[data-artifact="plan"]    { --accent:#7c3aed; --accent-soft:#ede9fe; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0c0a09; --surface:#1c1917; --border:#292524;
+      --text:#fafaf9; --text-soft:#d6d3d1; --text-mute:#a8a29e;
+      --code-bg:#292524;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.3);
+      /* Dark variants of the "soft" tints — light pastels would wash out
+         text on dark backgrounds (especially in .diff rows). */
+      --accent-soft:#1e1b4b;
+      --ok-soft:#052e16;   --warn-soft:#451a03;   --err-soft:#450a0a;
+    }
+    body[data-artifact="spec"]    { --accent:#818cf8; --accent-soft:#1e1b4b; }
+    body[data-artifact="state"]   { --accent:#4ade80; --accent-soft:#052e16; }
+    body[data-artifact="backlog"] { --accent:#fbbf24; --accent-soft:#451a03; }
+    body[data-artifact="plan"]    { --accent:#a78bfa; --accent-soft:#2e1065; }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .doc { max-width: 920px; margin: 0 auto; padding: 48px 24px 96px; }
+  @media (max-width: 640px) { .doc { padding: 24px 16px 48px; } }
+
+  h1, h2, h3 { line-height: 1.25; margin: 0 0 12px; letter-spacing: -.01em; }
+  h1 { font-size: 32px; font-weight: 700; }
+  h2 { font-size: 20px; font-weight: 600; margin-top: 40px;
+       padding-top: 16px; border-top: 1px solid var(--border); }
+  h3 { font-size: 16px; font-weight: 600; }
+  p  { margin: 0 0 12px; color: var(--text-soft); }
+  a  { color: var(--accent); }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 4px 0; color: var(--text-soft); }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  .hero {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+    box-shadow: var(--shadow); margin-bottom: 32px;
+    border-left: 4px solid var(--accent);
+  }
+  .hero .meta { display:flex; flex-wrap:wrap; gap:8px; margin-top: 12px;
+                color: var(--text-mute); font-size: 13px; }
+  .hero .meta > * { display:inline-flex; align-items:center; gap:6px; }
+
+  .badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 3px 10px;
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .badge-feature   { background: #eef2ff; color: #4f46e5; }
+  .badge-bugfix    { background: #fef3c7; color: #b45309; }
+  .badge-pass,
+  .badge-completed { background: var(--ok-soft);  color: var(--ok);   }
+  .badge-fail      { background: var(--err-soft); color: var(--err);  }
+  .badge-warn      { background: var(--warn-soft);color: var(--warn); }
+  .badge-pending   { background: #f5f5f4; color: var(--text-mute);   }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px;
+    box-shadow: var(--shadow); margin: 16px 0;
+  }
+  .card h3 { margin-top: 0; }
+
+  .grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .kvs { display:grid; grid-template-columns: max-content 1fr; gap:6px 16px;
+         font-size: 14px; margin: 8px 0; }
+  .kvs dt { color: var(--text-mute); }
+  .kvs dd { margin:0; color: var(--text); }
+
+  .file-list { width:100%; border-collapse: collapse; font-size: 14px; }
+  .file-list td { padding: 8px 12px; border-bottom: 1px solid var(--border);
+                  vertical-align: top; }
+  .file-list td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo,
+                                            monospace; color: var(--accent);
+                              white-space: nowrap; }
+  .file-list tr:last-child td { border-bottom: 0; }
+
+  .code {
+    background: var(--code-bg); border-radius: var(--radius-sm);
+    padding: 14px 16px; overflow-x: auto;
+    font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text); margin: 12px 0;
+  }
+  /* Syntax highlighting tokens — used in .code AND inside .diff rows.
+     Apply as <span class="k">return</span>, <span class="s">"ok"</span>, etc.
+       .k   keyword          .s   string             .c / .cmt comment
+       .n   number/literal   .fn  function name      .dec decorator (@…)
+       .b   builtin / type   .o   operator           .v   variable highlight */
+  .code .k,   .diff .k   { color:#7c3aed; font-weight:600; }
+  .code .s,   .diff .s   { color:#16a34a; }
+  .code .c,   .diff .c,
+  .code .cmt, .diff .cmt { color: var(--text-mute); font-style: italic; }
+  .code .n,   .diff .n   { color:#d97706; }
+  .code .fn,  .diff .fn  { color:#2563eb; }
+  .code .dec, .diff .dec { color:#dc2626; }
+  .code .b,   .diff .b   { color:#0891b2; }
+  .code .o,   .diff .o   { color:#57534e; }
+  @media (prefers-color-scheme: dark) {
+    .code .k,   .diff .k   { color:#c4b5fd; }
+    .code .s,   .diff .s   { color:#86efac; }
+    .code .n,   .diff .n   { color:#fbbf24; }
+    .code .fn,  .diff .fn  { color:#93c5fd; }
+    .code .dec, .diff .dec { color:#fca5a5; }
+    .code .b,   .diff .b   { color:#67e8f9; }
+    .code .o,   .diff .o   { color:#a8a29e; }
+  }
+
+  .callout {
+    border-radius: var(--radius-sm); padding: 12px 16px; margin: 16px 0;
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    font-size: 14px; color: var(--text);
+  }
+  .callout-warn    { border-color: var(--warn); background: var(--warn-soft); color:#7c2d12; }
+  .callout-success { border-color: var(--ok);   background: var(--ok-soft);   color:#14532d; }
+  .callout-error   { border-color: var(--err);  background: var(--err-soft);  color:#7f1d1d; }
+  @media (prefers-color-scheme: dark) {
+    .callout-warn    { color:#fed7aa; }
+    .callout-success { color:#bbf7d0; }
+    .callout-error   { color:#fecaca; }
+  }
+
+  .timeline {
+    display:flex; align-items:flex-start; justify-content: space-between;
+    gap: 8px; margin: 24px 0; position: relative;
+  }
+  .timeline-step {
+    flex: 1; text-align:center; position: relative;
+    font-size: 13px; color: var(--text-mute);
+  }
+  .timeline-step .dot {
+    width: 28px; height: 28px; border-radius: 999px;
+    background: var(--surface); border: 2px solid var(--border);
+    margin: 0 auto 8px; display:flex; align-items:center;
+    justify-content:center; font-weight:700; color: var(--text-mute);
+    position: relative; z-index: 1;
+  }
+  .timeline-step.done .dot    { background: var(--ok);     border-color: var(--ok);     color:#fff; }
+  .timeline-step.active .dot  { background: var(--accent); border-color: var(--accent); color:#fff;
+                                box-shadow: 0 0 0 4px var(--accent-soft); }
+  .timeline-step.failed .dot  { background: var(--err);    border-color: var(--err);    color:#fff; }
+  .timeline-step.done,
+  .timeline-step.active       { color: var(--text); font-weight: 500; }
+  .timeline-step:not(:last-child)::after {
+    content:""; position:absolute; top:14px; left:calc(50% + 18px);
+    right: calc(-50% + 18px); height: 2px; background: var(--border); z-index:0;
+  }
+  .timeline-step.done:not(:last-child)::after { background: var(--ok); }
+
+  details { margin: 8px 0; }
+  details > summary {
+    cursor: pointer; font-weight: 600; color: var(--text);
+    padding: 6px 0; user-select: none;
+  }
+  details[open] > summary { margin-bottom: 8px; }
+
+  .check::before { content: "✓ "; color: var(--ok);   font-weight: 700; }
+  .cross::before { content: "✗ "; color: var(--err);  font-weight: 700; }
+  .qmark::before { content: "? "; color: var(--warn); font-weight: 700; }
+
+  /* Stat cards — two flavors. Pick per use-case:
+       .stat-icon  (icon-led): categorical counters (files created, tests written, verdict).
+       .stat-bar   (comparative bar): values vs. a target/budget (latency vs. p95, coverage). */
+  .stat-icon {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    border-left: 4px solid var(--accent); position: relative;
+    box-shadow: var(--shadow);
+  }
+  .stat-icon .ico { position:absolute; top:14px; right:16px; font-size:22px; opacity:.5; }
+  .stat-icon .lbl { color: var(--text-mute); font-size: 11px;
+                    text-transform: uppercase; letter-spacing: .08em; }
+  .stat-icon .num { font-size: 36px; font-weight: 700; line-height: 1;
+                    color: var(--accent); margin-top: 6px; font-feature-settings:"tnum"; }
+  .stat-icon .sub { color: var(--text-soft); font-size: 13px; margin-top: 8px; }
+
+  .stat-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .stat-bar .head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .stat-bar .lbl  { color: var(--text-mute); font-size:12px;
+                    text-transform: uppercase; letter-spacing:.06em; }
+  .stat-bar .num  { font-size:22px; font-weight:700; color: var(--text); font-feature-settings:"tnum"; }
+  .stat-bar .num .of { color: var(--text-mute); font-weight:400; font-size:16px; }
+  .stat-bar .bar  { height:8px; background: var(--border); border-radius:999px; overflow:hidden; }
+  .stat-bar .bar > span { display:block; height:100%; background: var(--ok); border-radius:999px; }
+  .stat-bar .bar > span.warn { background: var(--warn); }
+  .stat-bar .bar > span.err  { background: var(--err);  }
+  .stat-bar .sub  { color: var(--text-mute); font-size:12px; margin-top:8px; }
+
+  /* Unified-diff block — used by SE/Bug Fix Agent when modifying files */
+  .diff {
+    background: var(--code-bg); border-radius: var(--radius-sm);
+    overflow-x: auto; margin: 12px 0;
+    font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .diff .file {
+    display:flex; justify-content:space-between; align-items:center;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 8px 12px; color: var(--accent); font-weight: 600;
+  }
+  .diff .file .stats { color: var(--text-mute); font-weight: 400; font-size: 12px; }
+  .diff .file .stats .add { color: var(--ok);  margin-right: 8px; }
+  .diff .file .stats .del { color: var(--err); }
+  .diff pre { margin:0; padding: 8px 0; }
+  .diff .row { display:flex; padding: 0 12px; white-space: pre; }
+  .diff .row.add { background: var(--ok-soft); }
+  .diff .row.del { background: var(--err-soft); }
+  .diff .row.hunk { color: var(--text-mute); background: transparent; padding-top: 4px; padding-bottom: 4px; }
+  .diff .row .ln  { width: 40px; color: var(--text-mute); user-select: none; flex: 0 0 40px; text-align: right; padding-right: 12px; }
+  .diff .row .sg  { width: 14px; flex: 0 0 14px; user-select: none; }
+  .diff .row.add .sg { color: var(--ok); }
+  .diff .row.del .sg { color: var(--err); }
+</style>
+</head>
+<body data-artifact="spec">
+<main class="doc">
+
+  <!--
+    EXAMPLE markup follows. Replace with the artifact's real content.
+    Each agent should pick the components it needs and skip the rest.
+  -->
+
+  <header class="hero">
+    <span class="badge badge-feature">type: feature</span>
+    <h1 style="margin-top:10px">Artifact title goes here</h1>
+    <p>One- or two-line summary of what this artifact represents.</p>
+    <div class="meta">
+      <span>📁 target/path/</span>
+      <span>🌿 feature/branch-name</span>
+      <span>📅 2026-05-08</span>
+    </div>
+  </header>
+
+  <h2>Section heading</h2>
+  <div class="card">
+    <h3>Card title</h3>
+    <p>Use cards to group related content with breathing room.</p>
+    <dl class="kvs">
+      <dt>Stack</dt><dd>Python · FastAPI · Postgres</dd>
+      <dt>Branch</dt><dd>feature/healthz</dd>
+    </dl>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Idea / option A</h3>
+      <p>Use the grid for side-by-side comparisons (backlog ideas, design options).</p>
+    </div>
+    <div class="card">
+      <h3>Idea / option B</h3>
+      <p>Cards in the grid auto-flow on smaller viewports.</p>
+    </div>
+  </div>
+
+  <h2>Pipeline status</h2>
+  <div class="timeline">
+    <div class="timeline-step done"><div class="dot">1</div>Spec</div>
+    <div class="timeline-step active"><div class="dot">2</div>SE Agent</div>
+    <div class="timeline-step pending"><div class="dot">3</div>QA</div>
+    <div class="timeline-step pending"><div class="dot">4</div>Automation</div>
+  </div>
+
+  <h2>Files</h2>
+  <table class="file-list">
+    <tr><td>src/api/healthz.py</td><td>health endpoint handler</td></tr>
+    <tr><td>tests/test_healthz.py</td><td>covers 200 OK path</td></tr>
+  </table>
+
+  <h2>Snippet</h2>
+  <pre class="code"><span class="cmt"># example snippet — agents render real code here</span>
+def healthz():
+    return {"ok": True}</pre>
+
+  <div class="callout callout-success">
+    Acceptance criteria all green — ready to merge.
+  </div>
+
+</main>
+
+<!--
+  Data sidecar: the .json sibling is the canonical, agent-readable form.
+  Sub-agents read/write the .json directly and re-render this HTML from it.
+-->
+<script type="application/json" id="gastflow-data" src="./gastflow_spec.json"></script>
+</body>
+</html>
