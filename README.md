@@ -1,6 +1,6 @@
 # gastflow
 
-An agentic software development workflow for Claude Code. You describe what you want to build — gastflow clarifies, writes a spec, delegates to specialized sub-agents, and ships.
+A Claude Code skill that runs a Spec Driven Development workflow — clarifies requirements, writes specs, builds features, and tests them by delegating to specialized sub-agents. Outputs self-contained HTML artifacts.
 
 The output is **not Markdown**. Every spec, plan, and final report is a self-contained HTML page you can open in a browser, share via link, and read on your phone. Inspired by [The Unreasonable Effectiveness of HTML](https://thariqs.github.io/html-effectiveness/) by Thariq (Claude Code team).
 
